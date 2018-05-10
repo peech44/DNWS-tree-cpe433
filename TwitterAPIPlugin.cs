@@ -17,6 +17,11 @@ namespace DNWS
         private const string LOGIN_ACTION = "login";
         private const string LOGOUT_ACTION = "logout";
         private const string FOLLOWING_ACTION = "following";
+        //
+        private const string FOLLOW_ACTION = "follow";
+        //
+        private const string UNFOLLOW_ACTION = "unfollow";
+        //
         private string session;
         private string action;
         private string requestMethod;
@@ -251,6 +256,7 @@ namespace DNWS
                         }
                     }
                 }
+                //action following
                 else if (IsAction(FOLLOWING_ACTION))
                 {
                     if (IsMethod(HTTP_GET))
@@ -267,6 +273,7 @@ namespace DNWS
                         response.Body = Encoding.UTF8.GetBytes(resp);
                         return response;
                     }
+                    //add new following
                     else if (IsMethod(HTTP_POST))
                     {
                         string following = request.GetRequestByKey("followingname");
@@ -319,6 +326,67 @@ namespace DNWS
 
                         }
                     }
+                }
+                //add follow
+                else if (IsAction(FOLLOW_ACTION))
+                {
+                    if (IsMethod(HTTP_POST))
+                    {
+                        string following = request.GetRequestByKey("followingname");
+                        try
+                        {
+                            twitter.AddFollowing(following);
+                            response = new HTTPResponse(201);
+                            response.Type = "application/json";
+                            string resp = JsonConvert.SerializeObject(user.Following);
+                            if (resp == null)
+                            {
+                                response.SetBody("No folowing");
+                                response.Status = 404;
+                                return response;
+                            }
+                            response.Body = Encoding.UTF8.GetBytes(resp);
+                            return response;
+                        }
+                        catch (Exception ex)
+                        {
+                            response.Status = 400;
+                            response.SetBody(ex.Message);
+                            return response;
+                        }
+                    }
+
+
+                }
+                //unfollow
+                else if(IsAction(UNFOLLOW_ACTION))
+                {
+                    if (IsMethod(HTTP_DELETE))
+                    {
+                        try
+                        {
+                            twitter.RemoveFollowing(following);
+                            response = new HTTPResponse(200);
+                            response.Type = "application/json";
+                            string resp = JsonConvert.SerializeObject(user.Following);
+                            if (resp == null)
+                            {
+                                response.SetBody("No following");
+                                response.Status = 404;
+                                return response;
+                            }
+                            response.Body = Encoding.UTF8.GetBytes(resp);
+                            return response;
+                        }
+
+                        catch (Exception ex)
+                        {
+                            response.Status = 400;
+                            response.SetBody(ex.Message);
+                            return response;
+                        }
+                    }
+
                 }
             }
             response.Status = 400;
